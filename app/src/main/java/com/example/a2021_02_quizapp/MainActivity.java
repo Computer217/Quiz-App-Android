@@ -2,6 +2,10 @@ package com.example.a2021_02_quizapp;
 
 import android.os.Bundle;
 
+import com.example.a2021_02_quizapp.controller.NextQuestion;
+import com.example.a2021_02_quizapp.controller.Score;
+import com.example.a2021_02_quizapp.model.AllQuestions;
+import com.example.a2021_02_quizapp.model.Question;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -18,7 +22,17 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String N_TAG = "IN_ONLICK";
+    private static final String TAG_INDEX = "GAME_MAIN_ACTIVITY";
+
+    private TextView questionView;
+    private TextView scoreView;
+    private Button true_Button;
+    private Button false_Button;
+    private Button next_Button;
+
+    AllQuestions allQuestions = new AllQuestions();
+    NextQuestion nextQuestion = new NextQuestion();
+    Score score = new Score();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,18 +41,41 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        questionView = findViewById(R.id.question_view);
+        scoreView = findViewById(R.id.scoreView);
+
+        questionView.setText(R.string.start_q);
+        scoreView.setText(R.string.initial_score);
 
         //find buttons
-        TextView questionView = findViewById(R.id.question_view);
-        Button true_button = findViewById(R.id.t_button);
-        Button false_button = findViewById(R.id.f_button);
-        Button next_button = findViewById(R.id.next_button);
-
-        //question View - put questions in
-
+        true_Button = findViewById(R.id.t_button);
+        false_Button = findViewById(R.id.f_button);
+        next_Button = findViewById(R.id.next_button);
 
         //make sure the buttons are watching the screen
-        true_button.setOnClickListener(new View.OnClickListener() {
+        true_Button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int index = nextQuestion.getCurrentQuestion();
+                Question question = null;
+                try {
+                    question = allQuestions.getQuestion(index);
+                } catch (Exception e) {
+                    Log.d(TAG_INDEX, "index out of bounds");
+                }
+
+                if (question.isQuestionTrue()) {
+                    score.correctAnswer();
+                    scoreView.setText(String.valueOf(score.getScore()));
+                }
+
+                //where is getQuestionID
+                index = allQuestions.getQuestion(index).getQuestionID();
+                questionView.setText(allQuestions.getQuestion(index).getQuestionID());
+            }
+        });
+
+        false_Button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
@@ -46,18 +83,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        false_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-
-            }
-        });
-
-        next_button.setOnClickListener(new View.OnClickListener() {
+        next_Button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(N_TAG, "Clicked Next");
             }
         });
 
