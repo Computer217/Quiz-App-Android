@@ -1,5 +1,6 @@
 package com.example.a2021_02_quizapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.example.a2021_02_quizapp.controller.NextQuestion;
@@ -26,13 +27,16 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView questionView;
     private TextView scoreView;
-    private Button true_Button;
-    private Button false_Button;
-    private Button next_Button;
+    private Button true_button;
+    private Button false_button;
+    private Button next_button;
+    private Button done_button;
 
     AllQuestions allQuestions = new AllQuestions();
     NextQuestion nextQuestion = new NextQuestion();
     Score score = new Score();
+
+    private final String N_TAG = "IN_ONCLICK";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,14 +52,31 @@ public class MainActivity extends AppCompatActivity {
         scoreView.setText(R.string.initial_score);
 
         //find buttons
-        true_Button = findViewById(R.id.t_button);
-        false_Button = findViewById(R.id.f_button);
-        next_Button = findViewById(R.id.next_button);
+        true_button = findViewById(R.id.t_button);
+        false_button = findViewById(R.id.f_button);
+        next_button = findViewById(R.id.next_button);
+        done_button = findViewById(R.id.done_button);
 
-        //make sure the buttons are watching the screen
-        true_Button.setOnClickListener(new View.OnClickListener() {
+        true_button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View v) {
+                Log.i(N_TAG, "Clicked True");
+                tfButtons(v,true);
+            }
+        });
+
+        false_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(N_TAG, "Clicked False");
+                tfButtons(v, false);
+            }
+        });
+
+        next_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.i(N_TAG, "Clicked Next");
                 int index = nextQuestion.getCurrentQuestion();
                 Question question = null;
                 try {
@@ -64,39 +85,25 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG_INDEX, "index out of bounds");
                 }
 
-                if (question.isQuestionTrue()) {
-                    score.correctAnswer();
-                    scoreView.setText(String.valueOf(score.getScore()));
-                }
+                score.skipQuestion();
+                index = nextQuestion.getNextQuestionIndex();
+                scoreView.setText(String.valueOf(score.getScore()));
 
-                //where is getQuestionID
-                index = allQuestions.getQuestion(index).getQuestionID();
                 questionView.setText(allQuestions.getQuestion(index).getQuestionID());
-            }
-        });
-
-        false_Button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
 
             }
         });
 
-        next_Button.setOnClickListener(new View.OnClickListener() {
+        done_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.i(N_TAG, "Clicked Done");
+                SummaryActivity(v);
+
             }
         });
 
-
     }
-
-
-
-
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -119,4 +126,41 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    public void SummaryActivity (View v){
+        Intent intent = new Intent(MainActivity.this, SummaryActivity.class);
+        intent.putExtra("score", score.getScore());
+        startActivity(intent);
+        MainActivity.this.finish();
+    }
+
+
+    public void tfButtons (View v, Boolean flag){
+        int index = nextQuestion.getCurrentQuestion();
+        Question question = null;
+        try {
+            question = allQuestions.getQuestion(index);
+        } catch (Exception e) {
+            Log.d(TAG_INDEX, "index out of bounds");
+        }
+
+        if (flag == false) {
+            if (!question.isQuestionTrue()) {
+                score.correctAnswer();
+                scoreView.setText(String.valueOf(score.getScore()));
+            }
+        }
+
+        if (flag == true) {
+            if (question.isQuestionTrue()) {
+                score.correctAnswer();
+                scoreView.setText(String.valueOf(score.getScore()));
+            }
+        }
+
+
+        index = nextQuestion.getNextQuestionIndex();
+        questionView.setText(allQuestions.getQuestion(index).getQuestionID());
+    }
+
 }
